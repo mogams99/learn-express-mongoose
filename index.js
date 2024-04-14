@@ -8,6 +8,9 @@ const app = express();
 // Import Model
 const Product = require('./models/product');
 
+// Import Class
+const ErrorHandler = require('./ErrorHandler');
+
 // Connect to MongoDB
 mongoose.connect('mongodb://127.0.0.1/shop-db').then(res => {
     console.log('MongoDB is connected');
@@ -44,25 +47,46 @@ app.post('/products', async (req, res) => {
     await product.save();
     res.redirect('/products');
 });
-app.get('/products/:id', async (req, res) => {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    res.render('products/show', { product });
+app.get('/products/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.findById(id);
+        res.render('products/show', { product });
+    } catch (error) {
+        next(new ErrorHandler('Product data not found.', 404));
+    }
 });
-app.get('/products/:id/edit', async (req, res) => {
-    const { id } = req.params;
-    const product = await Product.findById(id);
-    res.render('products/edit', { product });
+app.get('/products/:id/edit', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.findById(id);
+        res.render('products/edit', { product });
+    } catch (error) {
+        next(new ErrorHandler('Product data not found.', 404));
+    }
 });
-app.put('/products/:id', async (req, res) => {
-    const { id } = req.params;
-    const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true });
-    res.redirect('/products');
+app.put('/products/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true });
+        res.redirect('/products');
+    } catch (error) {
+        next(new ErrorHandler('Product data cannot be updated.', 412));
+    }
 });
-app.delete('/products/:id', async (req, res) => {
-    const { id } = req.params;
-    const product = await Product.findByIdAndDelete(id);
-    res.redirect('/products');
+app.delete('/products/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const product = await Product.findByIdAndDelete(id);
+        res.redirect('/products');
+    } catch (error) {
+        next(new ErrorHandler('Product data cannot be updated.', 412));
+    }
+});
+// Middleware Error Handling
+app.use((err, req, res, next) => {
+    const { status = 500, message = 'Something went wrong' } = err;
+    res.status(status).send(message);
 });
 
 // Connect to App
