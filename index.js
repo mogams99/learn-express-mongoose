@@ -1,10 +1,11 @@
 // Import Lib Package
 const path = require('path');
 const express = require('express');
+const methodOverride = require('method-override');
 const mongoose = require('mongoose');
 const app = express();
 
-// Models 
+// Import Model
 const Product = require('./models/product');
 
 // Connect to MongoDB
@@ -14,9 +15,11 @@ mongoose.connect('mongodb://127.0.0.1/shop-db').then(res => {
     console.log(err);
 })
 
+// Config
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
 
 // Routing
 app.get('/', (req, res) => {
@@ -45,7 +48,13 @@ app.get('/products/:id/edit', async (req, res) => {
     const product = await Product.findById(id);
     res.render('products/edit', { product });
 });
+app.put('/products/:id', async (req, res) => {
+    const { id } = req.params;
+    const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true });
+    res.redirect('/products');
+});
 
+// Connect to App
 app.listen(3000, () => {
     console.log('Shop App listening on http://localhost:3000');
 })
