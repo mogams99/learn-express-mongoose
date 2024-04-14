@@ -53,6 +53,11 @@ app.put('/products/:id', async (req, res) => {
     const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true });
     res.redirect('/products');
 });
+app.delete('/products/:id', async (req, res) => {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+    res.redirect('/products');
+});
 
 // Connect to App
 app.listen(3000, () => {
