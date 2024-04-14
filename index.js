@@ -24,11 +24,17 @@ app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
+function wrapAsync(fn) {
+    return function (req, res, next) {
+        fn(req, res, next).catch(err => next(err));
+    }
+}
+
 // Routing
 app.get('/', (req, res) => {
     res.send(`Hello World!`);
 });
-app.get('/products', async (req, res) => {
+app.get('/products', wrapAsync(async (req, res, next) => {
     const { category } = req.query;
     if (category) {
         const products = await Product.find({ category });
@@ -37,52 +43,36 @@ app.get('/products', async (req, res) => {
         const products = await Product.find({});
         res.render('products/index', { products, category: 'All' });
     }
-});
+}));
 app.get('/products/create', (req, res) => {
     res.render('products/create');
 });
-app.post('/products', async (req, res) => {
+app.post('/products', wrapAsync(async (req, res) => {
     const request = req.body;
     const product = new Product(req.body);
     await product.save();
     res.redirect('/products');
-});
-app.get('/products/:id', async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const product = await Product.findById(id);
-        res.render('products/show', { product });
-    } catch (error) {
-        next(new ErrorHandler('Product data not found.', 404));
-    }
-});
-app.get('/products/:id/edit', async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const product = await Product.findById(id);
-        res.render('products/edit', { product });
-    } catch (error) {
-        next(new ErrorHandler('Product data not found.', 404));
-    }
-});
-app.put('/products/:id', async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true });
-        res.redirect('/products');
-    } catch (error) {
-        next(new ErrorHandler('Product data cannot be updated.', 412));
-    }
-});
-app.delete('/products/:id', async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const product = await Product.findByIdAndDelete(id);
-        res.redirect('/products');
-    } catch (error) {
-        next(new ErrorHandler('Product data cannot be updated.', 412));
-    }
-});
+}));
+app.get('/products/:id', wrapAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    res.render('products/show', { product });
+}));
+app.get('/products/:id/edit', wrapAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const product = await Product.findById(id);
+    res.render('products/edit', { product });
+}));
+app.put('/products/:id', wrapAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const product = await Product.findByIdAndUpdate(id, req.body, { runValidators: true });
+    res.redirect('/products');
+}));
+app.delete('/products/:id', wrapAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+    res.redirect('/products');
+}));
 // Middleware Error Handling
 app.use((err, req, res, next) => {
     const { status = 500, message = 'Something went wrong' } = err;
