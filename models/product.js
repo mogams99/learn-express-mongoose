@@ -5,24 +5,24 @@ const mongoose = require('mongoose');
 const productSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true
+        required: [true, 'Name is required']
     },
     brand: {
         type: String,
-        required: true
+        required: [true, 'Brand is required']
     },
     price: {
         type: Number,
-        required: true
+        required: [true, 'Price is required']
     },
     color: {
         type: String,
-        required: true
+        required: [true, 'Color is required']
     },
     category: {
         type: String,
         enum: ['Baju', 'Celana', 'Jaket', 'Aksesoris'],
-        required: true
+        required: [true, 'Category is required']
     },
 });
 

@@ -73,6 +73,21 @@ app.delete('/products/:id', wrapAsync(async (req, res, next) => {
     const product = await Product.findByIdAndDelete(id);
     res.redirect('/products');
 }));
+const validatorHandler = err => {
+    err.status = 400;
+    err.message = Object.values(err.errors).map(item => item.message);
+    return new ErrorHandler(err.message, err.status);
+}
+// Mapping Error Message
+app.use((err, req, res, next) => {
+    console.dir(err);
+    if (err.name === 'ValidationError') err = validatorHandler(err);
+    if (err.name === 'CastError') {
+        err.status = 404;
+        err.message = 'Data product not found.';
+    }
+    next(err);
+});
 // Middleware Error Handling
 app.use((err, req, res, next) => {
     const { status = 500, message = 'Something went wrong' } = err;
