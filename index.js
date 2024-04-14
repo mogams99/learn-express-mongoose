@@ -16,6 +16,7 @@ mongoose.connect('mongodb://127.0.0.1/shop-db').then(res => {
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.use(express.urlencoded({ extended: true }));
 
 // Routing
 app.get('/', (req, res) => {
@@ -27,6 +28,12 @@ app.get('/products', async (req, res) => {
 });
 app.get('/products/create', (req, res) => {
     res.render('products/create');
+});
+app.post('/products', async (req, res) => {
+    const request = req.body;
+    const product = new Product(req.body);
+    await product.save();
+    res.redirect('/products');
 });
 app.get('/products/:id', async (req, res) => {
     const { id } = req.params;
