@@ -36,6 +36,7 @@ function wrapAsync(fn) {
 app.get('/', (req, res) => {
     res.send(`Hello World!`);
 });
+
 // * Garment Route
 app.get('/garments', wrapAsync(async (req, res, next) => {
     const garments = await Garment.find({});
@@ -68,6 +69,12 @@ app.post('/garments/:garment_id/products', wrapAsync(async (req, res) => {
     await product.save();
     res.redirect(`/garments/${garment_id}`);
 }));
+app.delete('/garments/:id', wrapAsync(async (req, res, next) => {
+    const { id } = req.params;
+    await Garment.findOneAndDelete({ _id: id });
+    res.redirect('/garments');
+}));
+
 // * Product Route
 app.get('/products', wrapAsync(async (req, res, next) => {
     const { category } = req.query;
@@ -107,6 +114,7 @@ app.delete('/products/:id', wrapAsync(async (req, res, next) => {
     const product = await Product.findByIdAndDelete(id);
     res.redirect('/products');
 }));
+
 const validatorHandler = err => {
     err.status = 400;
     err.message = Object.values(err.errors).map(item => item.message);
