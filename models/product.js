@@ -24,6 +24,10 @@ const productSchema = new mongoose.Schema({
         enum: ['Baju', 'Celana', 'Jaket', 'Aksesoris'],
         required: [true, 'Category is required']
     },
+    garment:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Garment"
+    }
 });
 
 // Export Product Schema
