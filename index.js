@@ -49,6 +49,11 @@ app.post('/garments', wrapAsync(async (req, res) => {
     await garment.save();
     res.redirect('/garments');
 }));
+app.get('/garments/:id', wrapAsync(async (req, res, next) => {
+    const { id } = req.params;
+    const garment = await Garment.findById(id);
+    res.render('garments/show', { garment });
+}));
 // * Product Route
 app.get('/products', wrapAsync(async (req, res, next) => {
     const { category } = req.query;
