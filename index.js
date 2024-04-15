@@ -1,39 +1,55 @@
-// Import Lib Package
+// ? Import Lib Package
 const path = require('path');
 const express = require('express');
 const methodOverride = require('method-override');
 const mongoose = require('mongoose');
 const app = express();
 
-// Import Model
+// ? Import Model
 const Product = require('./models/product');
+const Garment = require('./models/garment');
 
-// Import Class
+// ? Import Class
 const ErrorHandler = require('./ErrorHandler');
 
-// Connect to MongoDB
+// ? Connect to MongoDB
 mongoose.connect('mongodb://127.0.0.1/shop-db').then(res => {
     console.log('MongoDB is connected');
 }).catch(err => {
     console.log(err);
 })
 
-// Config
+// ! Config
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
+// ? Helper Try Catch
 function wrapAsync(fn) {
     return function (req, res, next) {
         fn(req, res, next).catch(err => next(err));
     }
 }
 
-// Routing
+// ? Root Route
 app.get('/', (req, res) => {
     res.send(`Hello World!`);
 });
+// * Garment Route
+app.get('/garments', wrapAsync(async (req, res, next) => {
+    const garments = await Garment.find({});
+    res.render('garments/index', { garments });
+}));
+app.get('/garments/create', (req, res) => {
+    res.render('garments/create');
+});
+app.post('/garments', wrapAsync(async (req, res) => {
+    const garment = new Garment(req.body);
+    await garment.save();
+    res.redirect('/garments');
+}));
+// * Product Route
 app.get('/products', wrapAsync(async (req, res, next) => {
     const { category } = req.query;
     if (category) {
@@ -48,7 +64,6 @@ app.get('/products/create', (req, res) => {
     res.render('products/create');
 });
 app.post('/products', wrapAsync(async (req, res) => {
-    const request = req.body;
     const product = new Product(req.body);
     await product.save();
     res.redirect('/products');
@@ -78,7 +93,8 @@ const validatorHandler = err => {
     err.message = Object.values(err.errors).map(item => item.message);
     return new ErrorHandler(err.message, err.status);
 }
-// Mapping Error Message
+
+// ! Mapping Error Message
 app.use((err, req, res, next) => {
     console.dir(err);
     if (err.name === 'ValidationError') err = validatorHandler(err);
@@ -88,13 +104,13 @@ app.use((err, req, res, next) => {
     }
     next(err);
 });
-// Middleware Error Handling
+// ! Middleware Error Handling
 app.use((err, req, res, next) => {
     const { status = 500, message = 'Something went wrong' } = err;
     res.status(status).send(message);
 });
 
-// Connect to App
+// ! Connect to App
 app.listen(3000, () => {
     console.log('Shop App listening on http://localhost:3000');
 })

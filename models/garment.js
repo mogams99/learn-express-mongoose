@@ -20,4 +20,8 @@ const garmentSchema = new mongoose.Schema({
             ref: "Product"
         }
     ]
-})
+});
+
+// Export Garment Schema
+const Garment = mongoose.model('Garment', garmentSchema);
+module.exports = Garment;
