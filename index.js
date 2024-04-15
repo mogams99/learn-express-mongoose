@@ -54,6 +54,19 @@ app.get('/garments/:id', wrapAsync(async (req, res, next) => {
     const garment = await Garment.findById(id);
     res.render('garments/show', { garment });
 }));
+app.get('/garments/:garment_id/products/create', (req, res, next) => {
+    const { garment_id } = req.params;
+    res.render('products/create', { garment_id });
+});
+app.post('/garments/:garment_id/products', wrapAsync(async (req, res) => {
+    const { garment_id } = req.params;
+    const garment = await Garment.findById(garment_id);
+    const product = new Product(req.body);
+    garment.products.push(product);
+    await garment.save();
+    await product.save();
+    res.redirect(`/garments/${garment_id}`);
+}));
 // * Product Route
 app.get('/products', wrapAsync(async (req, res, next) => {
     const { category } = req.query;
