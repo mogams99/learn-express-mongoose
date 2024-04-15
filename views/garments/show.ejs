@@ -11,6 +11,13 @@
         <li>Location: <%= garment.location %></li>
         <li>Contact: <%= garment.contact %></li>
     </ul>
+    <h2>List Products</h2>
+    <ul>
+        <% for(let product of garment.products) { %>
+            <li>
+                <a href="/products/<%= product._id %>"><%= product.name %> - <%= product.brand %></a></li>
+        <% } %>
+    </ul>
 
     <a href="/garments/<%= garment._id %>/edit">Edit</a>
     <a href="/garments/<%= garment._id %>/products/create">Add a Product</a>
