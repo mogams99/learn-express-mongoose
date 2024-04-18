@@ -32,6 +32,10 @@ app.use(session({
     saveUninitialized: false
 }));
 app.use(flash());
+app.use((req, res, next) => {
+    res.locals.flashMessages = req.flash('flashMessages');
+    next();
+});
 
 // ? Helper Try Catch
 function wrapAsync(fn) {
@@ -48,7 +52,7 @@ app.get('/', (req, res) => {
 // * Garment Route
 app.get('/garments', wrapAsync(async (req, res, next) => {
     const garments = await Garment.find({});
-    res.render('garments/index', { garments, message: req.flash('success') });
+    res.render('garments/index', { garments });
 }));
 app.get('/garments/create', (req, res) => {
     res.render('garments/create');
@@ -56,7 +60,7 @@ app.get('/garments/create', (req, res) => {
 app.post('/garments', wrapAsync(async (req, res) => {
     const garment = new Garment(req.body);
     await garment.save();
-    req.flash('success', 'Garment was successfully added.');
+    req.flash('flashMessages', 'Garment was successfully added.');
     res.redirect('/garments');
 }));
 app.get('/garments/:id', wrapAsync(async (req, res, next) => {
