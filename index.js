@@ -3,6 +3,8 @@ const path = require('path');
 const express = require('express');
 const methodOverride = require('method-override');
 const mongoose = require('mongoose');
+const session = require('express-session');
+const flash = require('connect-flash');
 const app = express();
 
 // ? Import Model
@@ -24,6 +26,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
+app.use(session({
+    secret: 'lakadpatata',
+    resave: false,
+    saveUninitialized: false
+}));
+app.use(flash());
 
 // ? Helper Try Catch
 function wrapAsync(fn) {
@@ -40,7 +48,7 @@ app.get('/', (req, res) => {
 // * Garment Route
 app.get('/garments', wrapAsync(async (req, res, next) => {
     const garments = await Garment.find({});
-    res.render('garments/index', { garments });
+    res.render('garments/index', { garments, message: req.flash('success') });
 }));
 app.get('/garments/create', (req, res) => {
     res.render('garments/create');
@@ -48,6 +56,7 @@ app.get('/garments/create', (req, res) => {
 app.post('/garments', wrapAsync(async (req, res) => {
     const garment = new Garment(req.body);
     await garment.save();
+    req.flash('success', 'Garment was successfully added.');
     res.redirect('/garments');
 }));
 app.get('/garments/:id', wrapAsync(async (req, res, next) => {
